@@ -1,0 +1,203 @@
++question types: it can be multiple choice (allowing you to choose many bubbles), or single choice (allowing only one choice)
+	-what should this configuration be based on though? you can do an abstract iVote class and subclasses 	iVoteSingle and iVoteMultiple
+
++candidate answers: should be allowed to configure candidate answer types, meaning you can populate the answer choices to be whatever you want.
+	-answers should be string right?
+
++it is set to be (iVote service) and every student class has a unique ID and a (submitAnswer) function
+	-how to do the submitAnswer function and how to connect it with iVote service?
+		-should this be an interface? why?
+
++iVote service is first configured with the given question type (multiple/single) and candidate answers
+	-how should I do this? 
+		-> class can handle question type configuration
+		-> constructor should take care of candidate answers? h
+			-how?
+
++Accepts submissions from students once configured (only one per student)
+	-again, how do I connect iVote service to student answer?
+	-how do I enforce the "one per student" rule? what about change of submission?
+
++Ivote can output stats on submission results (can just be printed to console, like how many students chose which answer)
+	-should I just use a hashmap for this? keep track of key "answers" and value "# voted"
+
++SimulationDriver simulates the whole process --> 
+	1) creates question type and configures answer	
+	2) configures questions for iVote service'
+	3) randomly generate number of students and their answers
+	4) submits all the students answers to iVote Service (hashmap)
+	5) call the iVote service
+	
+
+OOP Principles to consider
+-Class Hierarchy (Abstract classes)
+-Encapsulation
+-Interface
+-Polymorphism --> where can I apply this?
+	-Overloading vs overriding
+
+
+
+Things to do in preparation
+-Go over oop concepts and take pertinent notes (gather like cheatsheet)
+-See where it can be applied within this code
+-Create basic structure using UML or pseudocode
+-Maybe familiarize with event timeline?
+	-Maybe layout the timeline of events and build classes around it?
+
+
+
+
+-should answer and question be a different class? 
++the WAY answers can be interacted with by the student relies on the question TYPE, so it should be part of Question
+-why should I have the question decide what the voting behavior should be? 
++because it is what decides if it is multiple or single. It just makes sense, let vote be implemented by it.
+-i feel like the questions classes should be in charge of restricting voting habits - but how?
+------------------------------------------------------------------------------
+interface IQuestion
+	boolean isValidAnswer(List<String> answers)
+
+abstract class Question 
+	String question;
+	List<String> choices;
+	
+	// constructor configures answers and questions
+	public Question(String question, List<String> choices) {
+		this.question = question;
+		this.choices = choices;
+	}
+
+	public static void removeChoice(String s) {
+		if choices.contains(s)
+			remove
+	}
+	
+	public static void addChoice(String s) {
+		if !choices.contains(s)
+			add
+	}
+
+	// getter for choiceList and question
+	public static void List<T> getChoices()
+		return this.choices;
+	public static void String getQuestion();
+		return this.question;
+
+class MultipleChoiceQuestions extends Question implements IQuestion
+	// override - implement IQuestion : allow multiple picks 
+	public boolean isValidAnswer(List<String> answers) {
+		return answers.size() == 1 && choices.containsAll(answers);
+	}
+		
+class SingleChoiceQuestions extends Question implements Vote
+	// override - implement vote : allow one pick only (return singleton list)
+	public boolean isValidAnswer(List<String> answers) {
+		return !answers.isEmpty() && choices.containsAll(answers)
+	}
+
+------------------------------------------------------------------------------
++voting behavior based on type of question
+
+-maybe I should let voting behavior be decided by the voting service, based on what kind of question it gets.
++if it gets a multiple choice type question, iVote service should create an answer set which allows the freedom to 
+ choose several, if single, create an answer set which allows only one choice.
+-but how do I impose the restriction or allow the freedom? and how do I make the iVoteService voting behavior act in concordance with said restriction?
++the question type is determined by the type of question, but both are lists and don't have a difference in behavior. The difference in behavior should be coming from the type of vote restrictions applied. However, I m running into a logical incoherence. What is the point of creating a MultipleChoiceQuestion vs SingleChoiceQuestion type if there is no difference in the implementation? It seems arbitrary to me to JUST create the different types to use as identifier values. I feel like it should have differing functionality. Maybe I can just shift it to make the Vote behavior different. But also who cares? Yea who cares about it. the iVoteService is the thing actually playing around with Question service anyway. Just use it man, who care.
++I'm kind of going around in circles. I've decided the voting behavior is going to be in the questions vote. The student is going to receive a question and vote according to it
+--------------------------------------------------------------------------------------------------------
+class iVoteService
+	// question
+	Question question;
+	// hashSet to keep track of vote stats
+	Map<String, List<String>> submittedAnswers;
+	Map<String, Integer> answerStats;
+					
+	// constructor for question type, configure question/answers, and vote
+	public static void iVoteService(Questions question) {
+		this.question = question;
+	}
+
+	public static void acceptAnwer(Student s) {
+		List<String> studentAnswer = s.submitAnswer(this.question)
+		
+		if (question.isValidAnswer(studentAnswer)
+			submittedAnswers.put(s.studentID, studentAnswer)
+		// have student try again
+	}
+	
+	public static Map<String, Integer> getStats() {
+		for (all answerLists in submittedAnswers)
+			for (all elements in answerList)
+				if (answerStats.containsKey(answerList(i))
+					answerStats.put(answerList(i), answerStats.getValue(answerList(i) + 1)
+				else
+					answerStats.put(answerList(i), 1)
+		return answerStats;
+	}
+
+	
+		
+--------------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------------
+class SimulationDriver
+	String questionString = "This is a question";
+	List<String> choiceList = {"these", "are", "the", "answers"}
+	List<Student> studentList;
+	iVoteService myVotingService;
+
+
+	// create question type & configure quests/answer(multiple/single choice)
+	Question myQuestion = new Multiple/Single-ChoiceQuestion(questionString, choiceList)
+
+	// randomly generate students and student's answers
+	for(# of students randomly generated)
+		studentList.add(students)
+	
+	// give question, submit student's answers to iVoteService
+	myVotingService(myQuestion)
+	for (# of students in list)
+		iVoteService.submitAnswer(studentList(i))
+	
+	
+	// print iVoteService answer stats
+	System.out.println(myVotingService.getStats());
+--------------------------------------------------------------------------------------------------------	
+
+
+--------------------------------------------------------------------------------------------------------
+class Student
+	string studenID;
+	
+	public static List<T> submitAnswer(Question q)
+	{
+		List<String> choices = q.getChoices();
+		List<String> answers;
+
+		if (q instanceof SingleChoiceQuestion) {
+			answers = Collections.singletonList(choices.get(random.nextInt(choices.size())));
+		} else if (q instanceof MultipleChoiceQuestion) {
+			answers = new ArrayList<>();
+			Collections.shuffle(choices);
+			int numAnswers = 1 + random.nextInt(choices.size());
+			for(int i = 0; i < numAnswers; i++) {
+				answers.add(choices.get(i));
+		} 
+
+		if (question.isValidAnswer(answers)) {
+			return answers;
+		} else {
+			throw an error
+		}
+
+		
+	}
+--------------------------------------------------------------------------------------------------------
+
+	
+
+
+
+
+
